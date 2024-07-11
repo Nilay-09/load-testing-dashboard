@@ -4,32 +4,28 @@ import { PowerBIEmbed } from "powerbi-client-react";
 import { models } from "powerbi-client";
 
 
-import { toast,Toaster } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 
 import { RxCross2 } from "react-icons/rx";
 
 import OC from "./OC.png";
 import Microsoft from './Microsoft.png';
-import temp from "./assets/Template.xlsx";
+
 
 
 function App() {
-  const [webUrl, setWebUrl] = useState(
+  const [ webUrl, setWebUrl ] = useState(
     "https://app.powerbi.com/reportEmbed?reportId=08e9d049-6847-41b3-a94e-e3e4d5a4f04d&appId=5a6280f5-9149-4915-a230-040ec8cc0277"
   );
-  const [sendingWebUrl, setSendingWebUrl] = useState(
+  const [ sendingWebUrl, setSendingWebUrl ] = useState(
     "https://app.powerbi.com/reportEmbed?reportId=08e9d049-6847-41b3-a94e-e3e4d5a4f04d&appId=5a6280f5-9149-4915-a230-040ec8cc0277"
   );
 
-  const [reportId, setReportId] = useState("");
-  const [clickedVisuals, setClickedVisuals] = useState([]);
-  const [isChecked, setIsChecked] = useState(false);
+  const [ reportId, setReportId ] = useState("");
+  const [ clickedVisuals, setClickedVisuals ] = useState([]);
+  const [ isChecked, setIsChecked ] = useState(false);
 
-  const [viewPdf, setViewPdf] = useState(null);
-
-  const [pdfFile, setPdfFile] = useState(null);
-
-  // const [ pageNumber, setPageNumber ] = useState< number >(1);
+  const [ viewPdf, setViewPdf ] = useState(null);
 
 
 
@@ -39,15 +35,15 @@ function App() {
     console.log("visual");
     console.log(visual);
 
-    
-    let idx=visual?.detail?.dataPoints.length;
+
+    let idx = visual?.detail?.dataPoints.length;
 
     let VisualName;
     let VisualID;
-        if (visual?.detail?.visual?.type === "slicer") {
-          VisualName = visual?.detail?.dataPoints[idx-1]?.identity[0]?.target?.column;
-          VisualID = visual?.detail?.dataPoints[idx-1]?.identity[0]?.equals;
-    }else{
+    if (visual?.detail?.visual?.type === "slicer") {
+      VisualName = visual?.detail?.dataPoints[ idx - 1 ]?.identity[ 0 ]?.target?.column;
+      VisualID = visual?.detail?.dataPoints[ idx - 1 ]?.identity[ 0 ]?.equals;
+    } else {
       VisualName = visual.detail.visual.title
       VisualID = visual.detail.visual.name
     }
@@ -57,32 +53,32 @@ function App() {
     let a = false;
 
     if (visual?.detail?.visual?.type === "slicer") {
-        a = true;
+      a = true;
     }
 
     if (!VisualName || !VisualID) {
       return;
-  }
-    
+    }
+
     const existingEntryIndex = clickedVisuals.findIndex(item => item.VisualName === VisualName);
 
     if (existingEntryIndex !== -1) {
-       
-        const updatedVisuals = [...clickedVisuals];
-        updatedVisuals[existingEntryIndex].VisualID += `,${VisualID}`;
-        setClickedVisuals(updatedVisuals);
+
+      const updatedVisuals = [ ...clickedVisuals ];
+      updatedVisuals[ existingEntryIndex ].VisualID += `,${VisualID}`;
+      setClickedVisuals(updatedVisuals);
     } else {
-        
-        const clickedVisual = {
-            VisualName,
-            VisualID,
-            f: a
-        };
-        setClickedVisuals(prevState => [...prevState, clickedVisual]);
+
+      const clickedVisual = {
+        VisualName,
+        VisualID,
+        f: a
+      };
+      setClickedVisuals(prevState => [ ...prevState, clickedVisual ]);
     }
 
 
-};
+  };
 
 
 
@@ -92,8 +88,8 @@ function App() {
   const handleSearch = () => {
     let searchTerm = document.getElementById("searchterm").value;
     setSendingWebUrl(searchTerm);
-    const newReportId = searchTerm.split("reportId=")[1].split("&")[0];
-    searchTerm = searchTerm.split("&autoAuth=")[0];
+    const newReportId = searchTerm.split("reportId=")[ 1 ].split("&")[ 0 ];
+    searchTerm = searchTerm.split("&autoAuth=")[ 0 ];
     setReportId(newReportId);
     setWebUrl(searchTerm);
     setClickedVisuals([]);
@@ -104,24 +100,8 @@ function App() {
   };
 
   // xl
- 
-  const notify = () => toast('Here is your toast.');
-  const handleFileUpload = (e) => {
 
 
-    // const reader = new FileReader();
-    // reader.readAsBinaryString(e.target.files[0]);
-    // reader.onload = (e) => {
-    //   const data = e.target.result;
-    //   const workbook = XLSX.read(data, { type: "binary" });
-    //   const sheetName = workbook.SheetNames[0];
-    //   const sheet = workbook.Sheets[sheetName];
-    //   const parsedData = XLSX.utils.sheet_to_json(sheet);
-    //   setData(parsedData);
-
-    //   reRen(parsedData);
-    // };
-  };
 
 
 
@@ -130,33 +110,37 @@ function App() {
   };
 
 
-  
+
   const handleSubmit = async () => {
     // Get the totalUser value
     const totalUser = document.getElementById("totalUser").value;
 
+    if (!totalUser || parseInt(totalUser, 10) <= 0) {
 
+      toast.error("Please enter a valid number of total users");
+      return;
+    }
 
     let finalValuesToProceed = [];
     let finalVisualsToProceed = [];
 
     // Iterate over clickedVisuals array
     clickedVisuals.forEach((visual) => {
-        // Check if visual.f is true
-        if (visual.f) {
-            // If true, add to finalValuesToProceed array
-            finalValuesToProceed.push({
-                [visual.VisualName]: visual.VisualID
-            });
-        } else {
-            // If false, add to finalVisualsToProceed array
-            finalVisualsToProceed.push(visual.VisualName);
-        }
+      // Check if visual.f is true
+      if (visual.f) {
+        // If true, add to finalValuesToProceed array
+        finalValuesToProceed.push({
+          [ visual.VisualName ]: visual.VisualID
+        });
+      } else {
+        // If false, add to finalVisualsToProceed array
+        finalVisualsToProceed.push(visual.VisualName);
+      }
     });
 
     if (finalVisualsToProceed.length === 0) {
       finalVisualsToProceed.push("NoParam");
-  }
+    }
     // Log the final values
     console.log("FinalValuesToProceed", finalValuesToProceed);
     console.log("FinalVisualsToProceed", finalVisualsToProceed);
@@ -165,8 +149,9 @@ function App() {
     try {
       const requestBody = {
         flattenedArray: finalValuesToProceed,
-        visualArray:finalVisualsToProceed,
+        visualArray: finalVisualsToProceed,
         webUrl: sendingWebUrl,
+        totalUser: totalUser
       };
       const response = await fetch("http://localhost:4000/submit", {
         method: "POST",
@@ -180,10 +165,10 @@ function App() {
         // If the response is successful, show a success toast
         toast.success("Results Generated successfully!");
         console.log(response);
-    } else {
+      } else {
         // If the response is not successful, show a failure toast
         toast.error("Failed to submit request");
-    }
+      }
       console.log("response");
       console.log(response);
 
@@ -201,11 +186,10 @@ function App() {
       // Create URL for the Blob object
       let pdfUrl = await URL.createObjectURL(blob);
 
-      setPdfFile(pdfUrl);
       setViewPdf(pdfUrl);
     } catch (error) {
       console.error("Error:", error);
-      setPdfFile(null);
+
       setViewPdf(null);
     }
   };
@@ -217,9 +201,9 @@ function App() {
 
   // Token
   let anAccessToken =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6InEtMjNmYWxldlpoaEQzaG05Q1Fia1A1TVF5VSIsImtpZCI6InEtMjNmYWxldlpoaEQzaG05Q1Fia1A1TVF5VSJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvOTlmYTE5OWQtMjY1My00ZTE2LWJkNjUtMTdjYzI0NGI0MjVlLyIsImlhdCI6MTcxMzk0OTA2MywibmJmIjoxNzEzOTQ5MDYzLCJleHAiOjE3MTM5NTM4MDQsImFjY3QiOjAsImFjciI6IjEiLCJhaW8iOiJBVFFBeS84V0FBQUFQNzUvYUpONnJiT3B4dWRVQ2htNjVKWWFJQVZHNVFzd3hGZlNXOUVNelJsUGkzNE11WURCRUdoUE5ZdUN5VFU0IiwiYW1yIjpbInB3ZCJdLCJhcHBpZCI6Ijg3MWMwMTBmLTVlNjEtNGZiMS04M2FjLTk4NjEwYTdlOTExMCIsImFwcGlkYWNyIjoiMCIsImdpdmVuX25hbWUiOiJuaWxheSIsImlwYWRkciI6IjEwMy4xOTkuMjI0LjIwMCIsIm5hbWUiOiJuaWxheSIsIm9pZCI6ImQyZjE4ZmM0LTM4YzMtNDVjMC05NmQzLWFjYmQ1MzhkMTE2ZiIsInB1aWQiOiIxMDAzMjAwMzcwMEE2ODlCIiwicmgiOiIwLkFWVUFuUm42bVZNbUZrNjlaUmZNSkV0Q1hna0FBQUFBQUFBQXdBQUFBQUFBQUFDSUFMQS4iLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJzdWIiOiJLemg1UTI3c3FFTi1ya1NXb09OVFFtaGd2cGl1NnhXaGFNalQ4OENaOFFzIiwidGlkIjoiOTlmYTE5OWQtMjY1My00ZTE2LWJkNjUtMTdjYzI0NGI0MjVlIiwidW5pcXVlX25hbWUiOiJOaWxheUBpbm5vdmF0aW9uYWxvZmZpY2Vzb2x1dGlvbi5jb20iLCJ1cG4iOiJOaWxheUBpbm5vdmF0aW9uYWxvZmZpY2Vzb2x1dGlvbi5jb20iLCJ1dGkiOiJ3ZkdsR01oRWgwLUdlSTdEVlJpa0FBIiwidmVyIjoiMS4wIiwid2lkcyI6WyJiNzlmYmY0ZC0zZWY5LTQ2ODktODE0My03NmIxOTRlODU1MDkiXX0.Uj7tUpNNitjLpqkKWrFyReyN0wThI8HToHmCLdMwhn8lf_6MfgCp7UwrY3H74DhYHRMgzYJdWwNCl1tlfV4cv6kxH8j9YrkYjhlzzsqQ6uBkx8gv8SROFkrNDo-vMqwNoNKE4O9vQN3x9zBujf2nyNbNO7-5XuVSzRnl-IhXzql-tfaJpUUU9OUa5M8s6lh3varNygoQZFkLt6XzBYEUaoDgxSjdTCYtFOS8VeOtJe231CUX7UQrZ5czheegzTptOOF4UfupkfctIwYfPZnl56oS3YYjS5PsSvZHEd2YZPb_dHVfj4OupfNfRB51Fb6WYR1VNYw6a-bwpiiXWqDBUg";
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IkwxS2ZLRklfam5YYndXYzIyeFp4dzFzVUhIMCIsImtpZCI6IkwxS2ZLRklfam5YYndXYzIyeFp4dzFzVUhIMCJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvOTlmYTE5OWQtMjY1My00ZTE2LWJkNjUtMTdjYzI0NGI0MjVlLyIsImlhdCI6MTcxNTg0NDgxNSwibmJmIjoxNzE1ODQ0ODE1LCJleHAiOjE3MTU4NTAzOTIsImFjY3QiOjAsImFjciI6IjEiLCJhaW8iOiJBVFFBeS84V0FBQUFXbTVVMVgyTVNNYU9GQUUwQlFrS3JWcWFxUjFnWTZBK2VEM2FBWmRqaDlVR3VOMmlyQzV0SmxIN0pRWEg4M3F6IiwiYW1yIjpbInB3ZCJdLCJhcHBpZCI6Ijg3MWMwMTBmLTVlNjEtNGZiMS04M2FjLTk4NjEwYTdlOTExMCIsImFwcGlkYWNyIjoiMCIsImdpdmVuX25hbWUiOiJuaWxheSIsImlwYWRkciI6IjEwMy4xOTkuMjI0LjIzOCIsIm5hbWUiOiJuaWxheSIsIm9pZCI6ImQyZjE4ZmM0LTM4YzMtNDVjMC05NmQzLWFjYmQ1MzhkMTE2ZiIsInB1aWQiOiIxMDAzMjAwMzcwMEE2ODlCIiwicmgiOiIwLkFWVUFuUm42bVZNbUZrNjlaUmZNSkV0Q1hna0FBQUFBQUFBQXdBQUFBQUFBQUFDSUFMQS4iLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJzdWIiOiJLemg1UTI3c3FFTi1ya1NXb09OVFFtaGd2cGl1NnhXaGFNalQ4OENaOFFzIiwidGlkIjoiOTlmYTE5OWQtMjY1My00ZTE2LWJkNjUtMTdjYzI0NGI0MjVlIiwidW5pcXVlX25hbWUiOiJOaWxheUBpbm5vdmF0aW9uYWxvZmZpY2Vzb2x1dGlvbi5jb20iLCJ1cG4iOiJOaWxheUBpbm5vdmF0aW9uYWxvZmZpY2Vzb2x1dGlvbi5jb20iLCJ1dGkiOiJybmJLRkZiSmNVZXlrQUNDa3pvWEFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyJiNzlmYmY0ZC0zZWY5LTQ2ODktODE0My03NmIxOTRlODU1MDkiXX0.dwK78ewkWOyFovZO4M4yF_7dO-WeOEItM4HuPlraQFIoDhIxnueZOBhoxTw1KzP5YF60Xx51RZsaewzqxfcfmHJP11b9ER2be72vsFp8KwVLS68fP1L8Q9gSa8FqgkNpxhYDVJjgte68bYTTWru_1C0O64AReyd2opCoP6kud2uAUlVqdDF_1tMzVn38UKWTi6tNLPcKiLzVXW0awg2Bd8N6_GQt-pPaWeyfodztT7M83OsLdCbGS65of7k1tDU706b387shjkarq7r0veZv6r_ESJB_REAij0oV3jFMPQYqeBHeRj3J8WuAlWbVGlZOKPZcl_SPlwg6rstIPlbqYQ"
 
-  const [ram, setRam] = useState(null);
+  const [ ram, setRam ] = useState(null);
 
   useEffect(() => {
     const fetchSystemInfo = async () => {
@@ -374,9 +358,9 @@ function App() {
                           console.log(event.detail);
                         },
                       ],
-                      ["visualClicked", handleVisualClicked],
-                      ["pageChanged", (event) => console.log(event)],
-                      ["dataSelected", handleVisualClicked],
+                      [ "visualClicked", handleVisualClicked ],
+                      [ "pageChanged", (event) => console.log(event) ],
+                      [ "dataSelected", handleVisualClicked ],
                       [
                         "info",
                         function (event) {
@@ -431,14 +415,14 @@ function App() {
                           id="totalUser"
                           min={1}
                         />
-
+                        <Toaster />
                         <button
                           onClick={handleSubmit}
                           className="mt-2 px-4 py-2 bg-[#05c0d9] hover:bg-[#00acc1] text-white rounded focus:outline-none  text-sm"
                         >
                           Submit
                         </button>
-                        
+
                       </div>
                     )}
                   </div>
@@ -459,7 +443,7 @@ function App() {
                 Generate PDF
               </button>
 
-              <a href="http://localhost:4000/result-info">Download</a>
+              {/* <a href="http://localhost:4000/result-info">Download</a> */}
             </div>
 
             <div className="w-[100%] h-[35rem] flex justify-center items-center overflow-y-auto  mb-[200px]">

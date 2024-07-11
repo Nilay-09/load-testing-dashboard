@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = 4000;
 const { exec } = require('child_process');
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -36,8 +37,8 @@ app.get('/result-info', async (req, res) => {
   });
 
 app.post('/submit', (req, res) => {
-    const { flattenedArray, webUrl,visualArray } = req.body;
-    runLoadRunnerTest({ flattenedArray, webUrl,visualArray })
+    const { flattenedArray, webUrl,visualArray ,totalUser} = req.body;
+    runLoadRunnerTest({ flattenedArray, webUrl,visualArray ,totalUser})
 
 });
 
@@ -179,10 +180,50 @@ const writeVisuals = (visualArray) => {
     console.log("hi")
 
 };
+const writeUsers = (totalUser) => {
+
+    const filterNamePath = "C:\\LoadRunnerProject\\Scripts\\SC01_PowerBI_Dashboards_TC_V4\\totalUsers.txt";
+
+    
+    // Empty the file
+    try {
+        fs.writeFileSync(filterNamePath, ''); // Empty content
+    } catch (error) {
+        console.error(`Error emptying content of file: ${error}`);
+        return;
+    }
+    
+    // Write constant p_FilterName to the file
+    try {
+        fs.writeFileSync(filterNamePath, totalUser, { flag: 'a' }); // Append mode
+    } catch (error) {
+        console.error(`Error writing constant p_FilterName to file: ${error}`);
+    }
+
+};
+
+
+const setUsersIntoController = () => {
+    console.log("Running 'C:\\tagui\\flows\\totalUsers\\script.cmd' script...");
+  
+    exec('C:\\tagui\\flows\\totalUsers\\script.cmd', (error, stdout, stderr) => {
+      if (error) {
+        console.error("Error during script execution:", error);
+        return;
+      }
+  
+      if (stderr) {
+        console.error("Script stderr:", stderr);
+      }
+  
+      console.log("Script output:", stdout);
+    });
+  };
+  
 
 const runLoadRunnerTest = (requestBody) => {
 
-    const { flattenedArray, webUrl,visualArray } = requestBody;
+    const { flattenedArray, webUrl,visualArray,totalUser } = requestBody;
 
     console.log("visualArray")
     console.log(visualArray)
@@ -191,21 +232,24 @@ const runLoadRunnerTest = (requestBody) => {
     writePaths(flattenedArray)
     writePathsValues(flattenedArray)
     writeVisuals(visualArray)
+    // writeUsers(totalUser)
+
+    // setUsersIntoController()
 
     const command = 'START C:\\\\"Program Files (x86)\\\\"\\\\\"Micro Focus\"\\\\LoadRunner\\\\bin\\\\Wlrun.exe -Run -TestPath C:\\\\LoadRunnerProject\\\\Scenario\\\\sen.lrs -ResultName C:\\\\LoadRunnerProject\\\\Result';
 
-    // exec(command, (error, stdout, stderr) => {
-    //     if (error) {
-    //         console.error(`exec error: ${error}`);
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
 
-    //         return;
-    //     }
-    //     console.log(`stdout: ${stdout}`);
-    //     console.error(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+        console.error(`stderr: ${stderr}`);
 
-    //     checkAndRunLoadRunner()
+        checkAndRunLoadRunner()
 
-    // });
+    });
 
 
 };
